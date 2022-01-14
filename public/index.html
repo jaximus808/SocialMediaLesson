@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Croods</title>
+</head>
+<body>
+    <h1>The Croods Login Page:</h1>
+
+    <h2>Register</h2>
+    <p>username:</p>
+    <input id = "usernameReg" >
+    <p>password:</p>
+    <input id="passwordReg" type="password">
+    <p id="statusReg"></p>
+    <button onclick="Register()">Register Account!</button>
+    
+
+    <h2>Login</h2>
+    <p>username:</p>
+    <input id = "usernameLog" >
+    <p>password:</p>
+    <input id="passwordLog" type="password">
+    <p id="statusLog"></p>
+    <button onclick="Login()">Login!</button>
+
+    <script>
+        const Login = () =>
+        {
+            const username = document.getElementById("usernameLog").value;
+            const password = document.getElementById("passwordLog").value;
+            
+            fetch("http://localhost:3000/api/user/login", {
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                method:"POST",
+                body:JSON.stringify(
+                    {
+                        username:username,
+                        password:password
+                    }
+                )
+            }).then(res => res.json()).then(data =>
+            {
+                console.log(data)
+                if(data.error)
+                {
+                    document.getElementById("statusLog").innerHTML = `Status: ${data.message}`;
+                    return;
+                }
+                window.location.href = "/homepage"; 
+            }) 
+        }
+
+        const Register = () =>
+        {
+            const username = document.getElementById("usernameReg").value;
+            const password = document.getElementById("passwordReg").value;
+            
+            fetch("http://localhost:3000/api/user/register", {
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                method:"POST",
+                body:JSON.stringify(
+                    {
+                        username:username,
+                        password:password
+                    }
+                )
+            }).then(res => res.json()).then(data =>
+            {
+                console.log(data)
+                if(data.error)
+                {
+                    document.getElementById("statusReg").innerHTML = `Status: ${data.message}`;
+                    return;
+                }
+                window.location.href = "/homepage"; 
+            }) 
+        }
+    </script>
+</body>
+</html>

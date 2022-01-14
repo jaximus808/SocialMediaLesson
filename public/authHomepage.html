@@ -1,0 +1,23 @@
+<html>
+    <head>
+        <title>Croods homepage</title>
+    </head>
+    <body>
+        <p>You are logged in!</p>
+        <button onclick="logout()">Log out</button>
+        <script>
+            const logout = () =>
+            {
+                fetch("http://localhost:3000/api/user/logout", {
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                method:"POST",
+                }).then(data =>
+                {
+                    window.location.href = "/"; 
+                }) 
+            }
+        </script>
+    </body>
+</html> 
