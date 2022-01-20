@@ -98,33 +98,32 @@ app.get("/api/user/logout", (req, res) =>
     res.send({error:false}); 
 })
 
+//listens for a post request on the login route
 app.post("/api/user/login", async(req, res) =>
 {
-    //reading the username and password the user put 
+
+    //Reads the username and password
     const username = req.body.username;
     const password = req.body.password; 
 
+    //checks if the username exsits, if not send an error
     if(!Accounts[username]) return res.status(400).send({error:true, message:"Username or password incorrect"});
 
-    //compare hashed and unhashed password to see if the password is correct
+    //checks if the given password matches the hashed password
     const validPass = await bcrypt.compare(password, Accounts[username].password);
     
+    //if validPass is false (undefined) then it returns the error
     if(!validPass) return res.status(400).send({error:true, message:"Username or password incorrect"});
 
+    //creates a token that stores the hashed username 
     const token = jwt.sign({username:username}, process.env.TOKEN_SECRET)
+    
+    //clears the cookie and sets the new token as the cookie with parameters
     res.clearCookie("authToken");
     res.cookie("authToken", token, {maxAge:9000000, httpOnly: true})
+    
+    //sends that there were no errors
     res.send({error:false, message: token});
 })
 
 app.listen(3000, () => console.log("Server up "))
-
-//first middleware
-req.x = 5
-next()
-//second middleware
-console.log(req.x)
-req.x += 6
-
-//third middleware
-console.log(req.x)
