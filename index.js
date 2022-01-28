@@ -12,6 +12,15 @@ const jwt = require("jsonwebtoken")
 //imports the cookie-parser module and stores this into cookieParser
 const cookieParser = require("cookie-parser")
 
+//allows us to use mongoose schema and store data in mongodb
+const User = require("./models/UserObject")
+
+//grabs our validation objects
+const {registerValidation} = require("./validation")
+
+const mongoose = require("mongoose")
+
+
 //allows usuage of .env files, DO NOT USE LINE IN PRODUCTION
 require("dotenv").config(); 
 
@@ -19,6 +28,13 @@ require("dotenv").config();
 app.use(cookieParser())
 //using express's json middleware to parse req.body into a JSON object
 app.use(express.json())
+
+mongoose.connect(process.env.MONGO_CONNECT, {useNewUrlParser:true, useUnifiedTopology:true}, () =>
+{
+    console.log("connected to db!");
+})
+
+
 
 //allows account information to be stored and modified through a JSON object in Accounts
 const Accounts = {}
@@ -66,29 +82,59 @@ app.post("/api/user/register", async (req, res) =>
 {
     //stores username and password from the body sent from the user
     const username = req.body.username; 
+    const email = req.body.email;
     const password = req.body.password; 
 
     //checks if the password is less than 4. if so send an error
-    if(password.length < 4) return res.status(400).send({error:true, message:"make a better password"}) 
+    //if(password.length < 4) return res.status(400).send({error:true, message:"make a better password"}) 
+    
+    const data = 
+    {
+        username: username,
+        email: email,
+        password:password
+    }
+
+    const {error} = registerValidation(data)
+    if(error) return res.status(400).send({error:true, message:error.details[0].message})
+
+    const emailExists = await User.findOne({email: email})
+    if(emailExists) return res.status(400).send({error:true, message:"email already exists!"})
+
+
     
     //checks to see if there is a already made account with the same username in the Accounts JSON object, if so send an error
-    if(Accounts[username]) return res.status(400).send({error:true, message:"this account name is taken"})
+    // if(Accounts[username]) return res.status(400).send({error:true, message:"this account name is taken"})
 
     //uses bcrypt to hash the password and store that in the hashedPassword variable
     const hashedPassword = await bcrypt.hash(password, 10)
 
     //creates a new JSON object with the key name as the username and value as a JSON object with the password
-    Accounts[username] = {password:hashedPassword};
-    
-    //hashes and creates a token with the json object username
-    const token = jwt.sign({username:username}, process.env.TOKEN_SECRET)
+    // Accounts[username] = {password:hashedPassword};
 
-    //clears the cookie
-    res.clearCookie("authToken");
-    //sets the cookie as the token with certain security parameters
-    res.cookie("authToken", token, {maxAge:9000000, httpOnly: true})
-    //sends the error and sends the token back
-    res.send({error:false, message: token});
+    const user = new User({
+        username:username,
+        email: email, 
+        password:hashedPassword, 
+    })
+
+    try
+    {
+        const savedUser = await user.save(); 
+        const token = jwt.sign({_id:savedUser._id}, process.env.TOKEN_SECRET)
+
+        //clears the cookie
+        res.clearCookie("authToken");
+        //sets the cookie as the token with certain security parameters
+        res.cookie("authToken", token, {maxAge:9000000, httpOnly: true})
+        //sends the error and sends the token back
+        res.send({error:false, message: token});
+    }
+    catch (error){
+        res.status(400).send({error:true, message:error.message})
+    }
+    //hashes and creates a token with the json object username
+    
 })
 //listens for GET request
 app.get("/api/user/logout", (req, res) =>

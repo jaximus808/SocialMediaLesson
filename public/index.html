@@ -12,6 +12,8 @@
     <h2>Register</h2>
     <p>username:</p>
     <input id = "usernameReg" >
+    <p>email:</p>
+    <input id = "emailReg" >
     <p>password:</p>
     <input id="passwordReg" type="password">
     <p id="statusReg"></p>
@@ -29,36 +31,44 @@
     <script>
         const Login = () =>
         {
+            //gets the value of the input field of username and password for login
             const username = document.getElementById("usernameLog").value;
             const password = document.getElementById("passwordLog").value;
             
+            //sends a POST request to the login route to login
             fetch("http://localhost:3000/api/user/login", {
+                //tells the server it will be recieving JSON
                 headers:{
                     "Content-Type":"application/json"
                 },
+                //defines what type of request this is
                 method:"POST",
+                //takes a JSON object from the login page and stringifies it
                 body:JSON.stringify(
                     {
                         username:username,
                         password:password
                     }
                 )
+                //after response is recieved converts response string to JSON
             }).then(res => res.json()).then(data =>
             {
-                console.log(data)
+                //if there is an error, print the error message to the DOM page
                 if(data.error)
                 {
                     document.getElementById("statusLog").innerHTML = `Status: ${data.message}`;
                     return;
                 }
+                //if everything goes well, redirect to homepage since you are now logged in 
                 window.location.href = "/homepage"; 
             }) 
         }
-
+        //same comments apply here 
         const Register = () =>
         {
             const username = document.getElementById("usernameReg").value;
             const password = document.getElementById("passwordReg").value;
+            const email = document.getElementById("emailReg").value;
             
             fetch("http://localhost:3000/api/user/register", {
                 headers:{
@@ -68,7 +78,8 @@
                 body:JSON.stringify(
                     {
                         username:username,
-                        password:password
+                        password:password,
+                        email:email
                     }
                 )
             }).then(res => res.json()).then(data =>
