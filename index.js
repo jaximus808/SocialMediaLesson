@@ -16,7 +16,7 @@ const cookieParser = require("cookie-parser")
 const User = require("./models/UserObject")
 
 //grabs our validation objects
-const {registerValidation} = require("./validation")
+const {registerValidation, loginValidation} = require("./validation")
 
 const mongoose = require("mongoose")
 
@@ -149,20 +149,35 @@ app.post("/api/user/login", async(req, res) =>
 {
 
     //Reads the username and password
-    const username = req.body.username;
+    const email = req.body.email;
     const password = req.body.password; 
 
+    const data = 
+    {
+        email:email, 
+        password: password,
+    }
+
+    const {error} = loginValidation(data);
+    if(error) return res.status(400).send({error:true, message: error.details[0].message})
+
+    const emailExists = await User.findOne({email: email});
+    if(!emailExists) return res.status(400).send({error:true, message:"Email or Password incorrect!"});
+
+    
+    const validPass = await bcrypt.compare(password, emailExists.password);
+    
+
     //checks if the username exsits, if not send an error
-    if(!Accounts[username]) return res.status(400).send({error:true, message:"Username or password incorrect"});
+    //if(!Accounts[username]) return res.status(400).send({error:true, message:"Username or password incorrect"});
 
     //checks if the given password matches the hashed password
-    const validPass = await bcrypt.compare(password, Accounts[username].password);
     
     //if validPass is false (undefined) then it returns the error
     if(!validPass) return res.status(400).send({error:true, message:"Username or password incorrect"});
 
     //creates a token that stores the hashed username 
-    const token = jwt.sign({username:username}, process.env.TOKEN_SECRET)
+    const token = jwt.sign({_id:emailExists._id}, process.env.TOKEN_SECRET)
     
     //clears the cookie and sets the new token as the cookie with parameters
     res.clearCookie("authToken");

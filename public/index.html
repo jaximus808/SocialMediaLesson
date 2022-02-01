@@ -21,8 +21,8 @@
     
 
     <h2>Login</h2>
-    <p>username:</p>
-    <input id = "usernameLog" >
+    <p>email:</p>
+    <input id = "emailLog" >
     <p>password:</p>
     <input id="passwordLog" type="password">
     <p id="statusLog"></p>
@@ -32,7 +32,7 @@
         const Login = () =>
         {
             //gets the value of the input field of username and password for login
-            const username = document.getElementById("usernameLog").value;
+            const email = document.getElementById("emailLog").value;
             const password = document.getElementById("passwordLog").value;
             
             //sends a POST request to the login route to login
@@ -46,7 +46,7 @@
                 //takes a JSON object from the login page and stringifies it
                 body:JSON.stringify(
                     {
-                        username:username,
+                        email:email,
                         password:password
                     }
                 )

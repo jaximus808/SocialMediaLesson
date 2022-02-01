@@ -12,4 +12,18 @@ const registerValidation = (data) =>
     return schema.validate(data)
 }
 
+const loginValidation = (data) =>
+{
+    //create a framework for Joi to check
+    const schema = Joi.object(
+        {
+            email: Joi.string().min(6).email().required(),
+            password: Joi.string().min(6).required()
+        }
+    )
+    //checks the data if it is valid relative to the schema
+    return schema.validate(data)
+}
+
 module.exports.registerValidation = registerValidation; 
+module.exports.loginValidation = loginValidation; 
