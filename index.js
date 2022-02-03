@@ -187,4 +187,15 @@ app.post("/api/user/login", async(req, res) =>
     res.send({error:false, message: token});
 })
 
+app.get("/api/user/getUserDetails", TokenCheck, async (req, res)=>
+{
+    //req.user = {_id: budgiwq}
+    const userInfo = await User.findById(req.user); 
+    if(!userInfo) return res.status(400).send({error:true})
+
+    console.log(userInfo)
+    console.log(userInfo)
+    res.send({error:false, username:userInfo.username, imageLink:userInfo.profilePicture} )
+})
+
 app.listen(3000, () => console.log("Server up "))

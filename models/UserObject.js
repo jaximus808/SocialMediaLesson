@@ -19,7 +19,8 @@ const User = new Schema({
     {
         type:String, 
         min: 6,
-        max: 1024
+        max: 1024,
+        default:"https://archive.org/download/twitter-default-pfp/e.png"
     },
     password:
     {

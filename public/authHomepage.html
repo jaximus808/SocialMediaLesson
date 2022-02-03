@@ -1,10 +1,39 @@
 <html>
     <head>
         <title>Croods homepage</title>
+        <style>
+            #profileContainer
+            {
+                position: absolute; 
+                top:0;
+                right:0; 
+                background-color: #9d7ee6; 
+                width: 20%;
+                height:10%; 
+                padding-left: 10px;
+            }
+            #profileUsername
+            {
+
+                font-family: Georgia, 'Times New Roman', Times, serif;
+            }
+            #profileImage
+            {
+                width:50px;
+                height: 50px;
+                position: absolute; 
+                top:0;
+                right:10px;
+            }
+        </style>
     </head>
     <body>
-        <p>You are logged in!</p>
-        <button onclick="logout()">Log out</button>
+        <h1>The Croods Homepage</h1>
+        <div id="profileContainer">
+            <p id="profileUsername">BALLS</p>
+            <img id="profileImage">
+            <button onclick="logout()">Log out</button>
+        </div>
         <script>
             const logout = () =>
             {
@@ -18,6 +47,28 @@
                     window.location.href = "/"; 
                 }) 
             }
+
+            const init = () =>
+            {
+                fetch("http://localhost:3000/api/user/getUserDetails", {
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                method:"GET",
+                }).then(res => res.json()).then(data =>
+                {
+                    console.log(data)
+                    if(data.error)
+                    {
+                        window.location.href = "/"; 
+                        return; 
+                    } 
+                    document.getElementById("profileUsername").innerHTML = data.username;
+                    document.getElementById("profileImage").setAttribute("src",data.imageLink)
+                })
+            }
+            
+            init();
         </script>
     </body>
 </html> 
