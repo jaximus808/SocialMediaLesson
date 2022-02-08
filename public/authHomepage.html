@@ -30,7 +30,7 @@
     <body>
         <h1>The Croods Homepage</h1>
         <div id="profileContainer">
-            <p id="profileUsername">BALLS</p>
+            <p id="profileUsername"></p>
             <img id="profileImage">
             <button onclick="logout()">Log out</button>
         </div>
@@ -50,6 +50,7 @@
 
             const init = () =>
             {
+                //Gets the user details
                 fetch("http://localhost:3000/api/user/getUserDetails", {
                 headers:{
                     "Content-Type":"application/json"
@@ -57,12 +58,13 @@
                 method:"GET",
                 }).then(res => res.json()).then(data =>
                 {
-                    console.log(data)
+                    //if there is an error in the data return out of the function and goes back home
                     if(data.error)
                     {
                         window.location.href = "/"; 
                         return; 
                     } 
+                    ////replaces the profile username and profile image with the accounts information
                     document.getElementById("profileUsername").innerHTML = data.username;
                     document.getElementById("profileImage").setAttribute("src",data.imageLink)
                 })
