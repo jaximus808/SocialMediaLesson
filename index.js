@@ -14,10 +14,12 @@ const cookieParser = require("cookie-parser")
 
 //allows us to use mongoose schema and store data in mongodb
 const User = require("./models/UserObject")
+const Msg = require("./models/MsgObject");
 
 //grabs our validation objects
 const {registerValidation, loginValidation} = require("./validation")
 
+//lets us use the mongoose library
 const mongoose = require("mongoose")
 
 
@@ -29,8 +31,10 @@ app.use(cookieParser())
 //using express's json middleware to parse req.body into a JSON object
 app.use(express.json())
 
+//Connects us to the mongoose database using DOT ENV mongoose link 
 mongoose.connect(process.env.MONGO_CONNECT, {useNewUrlParser:true, useUnifiedTopology:true}, () =>
 {
+    //prints that we are connected
     console.log("connected to db!");
 })
 
@@ -80,7 +84,7 @@ app.get("/homepage", TokenCheck, (req, res) =>
 //listens for a post request on the given route and handles the data
 app.post("/api/user/register", async (req, res) =>
 {
-    //stores username and password from the body sent from the user
+    //stores username, email, and password from the body sent from the user
     const username = req.body.username; 
     const email = req.body.email;
     const password = req.body.password; 
@@ -88,6 +92,7 @@ app.post("/api/user/register", async (req, res) =>
     //checks if the password is less than 4. if so send an error
     //if(password.length < 4) return res.status(400).send({error:true, message:"make a better password"}) 
     
+    //Wraps the input data into json so our registration validation can read our data
     const data = 
     {
         username: username,
@@ -95,9 +100,11 @@ app.post("/api/user/register", async (req, res) =>
         password:password
     }
 
+    //Checks to make sure the data is formatted correctly, sends an error other wise. Sends the error to the client
     const {error} = registerValidation(data)
     if(error) return res.status(400).send({error:true, message:error.details[0].message})
 
+    //checks the emailExists by looking in the database with an existing email, sends email already exists to the client 
     const emailExists = await User.findOne({email: email})
     if(emailExists) return res.status(400).send({error:true, message:"email already exists!"})
 
@@ -112,14 +119,17 @@ app.post("/api/user/register", async (req, res) =>
     //creates a new JSON object with the key name as the username and value as a JSON object with the password
     // Accounts[username] = {password:hashedPassword};
 
+    //Formatting the registration data for MongoDB
     const user = new User({
         username:username,
         email: email, 
         password:hashedPassword, 
+        friendlist: JSON.stringify([])
     })
 
     try
     {
+        //saves the user into the data base and returns the newly saved information. and makes a secret token from the ID 
         const savedUser = await user.save(); 
         const token = jwt.sign({_id:savedUser._id}, process.env.TOKEN_SECRET)
 
@@ -148,23 +158,26 @@ app.get("/api/user/logout", (req, res) =>
 app.post("/api/user/login", async(req, res) =>
 {
 
-    //Reads the username and password
+    //Reads the email and password
     const email = req.body.email;
     const password = req.body.password; 
 
+    //wraps the data into json and stores it into a variable named data 
     const data = 
     {
         email:email, 
         password: password,
     }
 
+    //checks for an error in the data such as formatting and returns to the client the error
     const {error} = loginValidation(data);
     if(error) return res.status(400).send({error:true, message: error.details[0].message})
 
+    //checks if the email exists in the database by looking in the data base for an account with that email. If there isn't an email return an error to the client 
     const emailExists = await User.findOne({email: email});
     if(!emailExists) return res.status(400).send({error:true, message:"Email or Password incorrect!"});
 
-    
+    //checks to see if the hashed password matches the inputted password
     const validPass = await bcrypt.compare(password, emailExists.password);
     
 
@@ -190,12 +203,34 @@ app.post("/api/user/login", async(req, res) =>
 app.get("/api/user/getUserDetails", TokenCheck, async (req, res)=>
 {
     //req.user = {_id: budgiwq}
+    //looks through the database for the user with their id and saves it in the varaible userInfo. If the user does not exist send an error to the client 
     const userInfo = await User.findById(req.user); 
     if(!userInfo) return res.status(400).send({error:true})
 
-    console.log(userInfo)
-    console.log(userInfo)
+    //sends the user's information to the client so they can no
     res.send({error:false, username:userInfo.username, imageLink:userInfo.profilePicture} )
+})
+
+app.post("/api/message/postMessage", TokenCheck, async(req, res) =>
+{   
+    var msg = req.msg;
+    if(msg.trim().length == 0) return res.status(200).send({error:true, msg:"must send a message"})
+
+    const Message = new Msg(
+        {
+            ownerId: req.user._id,
+            message: msg
+        }
+    )
+    try
+    {
+        Message.save(); 
+        res.send({error:false})
+    }
+    catch
+    {
+        res.send({error:true, msg:"FAIL"})
+    }
 })
 
 app.listen(3000, () => console.log("Server up "))

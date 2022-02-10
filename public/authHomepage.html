@@ -25,6 +25,33 @@
                 top:0;
                 right:10px;
             }
+            #messageCreateContainer
+            {
+                width: 70%; 
+                height:30%;
+                background-color: lightgray;
+                padding: 20px;
+                margin-left: 1%;
+            }
+            #centered
+            {
+                position: inherit;
+                left:50%; 
+                transform: translate(50%, 0%);
+            }
+            body
+            {
+                margin:0; 
+                padding:0; 
+            }
+            #newMessage
+            {
+                
+                height:50%;
+                width:80%
+            }
+
+
         </style>
     </head>
     <body>
@@ -34,7 +61,33 @@
             <img id="profileImage">
             <button onclick="logout()">Log out</button>
         </div>
+        <div id="messageCreateContainer">
+            <h2 id="centered">Send a message :)</h2>
+            <input id="newMessage">
+            <button onclick="SendMessage()" id="postMessage">Squirk</button>
+        </div>
         <script>
+            const SendMessage = () =>
+            {
+                const message = document.getElementById("newMessage").value; 
+                fetch("http://localhost:3000/api/message/postMessage" , 
+                {
+                    headers: {
+                        "Content-Type":"application/json"
+                    },
+                    method: "POST",
+                    body: JSON.stringify(
+                        {
+                            msg: message
+                        }
+                    )
+                }).then(res => res.json())
+                .then(data =>
+                {
+                    console.log(data)
+                })
+            }
+            
             const logout = () =>
             {
                 fetch("http://localhost:3000/api/user/logout", {

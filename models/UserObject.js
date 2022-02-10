@@ -29,6 +29,11 @@ const User = new Schema({
         min:6,
         max: 1024
     },
+    friendlist:
+    {
+        type:String, 
+        required:true,
+    },
     date: {
         type:Date,
         default:Date.now
