@@ -50,7 +50,35 @@
                 height:50%;
                 width:80%
             }
+            
+            .msgContainer
+            {
+                width:90%; 
+                background-color: lightgrey;
+            }
 
+            .pfpMessage
+            { 
+                position: inherit;
+                 
+                height:5vw; 
+                width:5vw;
+                left:10%; 
+                top:10%;
+            }
+
+            .MessageOwner
+            {
+                font-size: 20px;
+            }
+
+            .messageTimeline
+            {
+                position:relative; 
+                top:10px; 
+                left:5%;
+                
+            }
 
         </style>
     </head>
@@ -65,6 +93,19 @@
             <h2 id="centered">Send a message :)</h2>
             <input id="newMessage">
             <button onclick="SendMessage()" id="postMessage">Squirk</button>
+        </div>
+        
+        <div class="messageTimeline">
+            <div class="msgContainer">
+                <img class="pfpMessage" src="https://archive.org/download/twitter-default-pfp/e.png">
+                <div class="MessageOwner">NAMe</div>
+                <div class="messageContent">
+                    I very much love valentines!
+                </div>
+                <button class="upvoteButton">I like!</button>
+                
+                <button class="downvoteButton">I no like!</button>
+            </div>
         </div>
         <script>
             const SendMessage = () =>

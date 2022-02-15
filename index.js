@@ -213,8 +213,9 @@ app.get("/api/user/getUserDetails", TokenCheck, async (req, res)=>
 
 app.post("/api/message/postMessage", TokenCheck, async(req, res) =>
 {   
-    var msg = req.msg;
+    var msg = req.body.msg;
     if(msg.trim().length == 0) return res.status(200).send({error:true, msg:"must send a message"})
+
 
     const Message = new Msg(
         {
