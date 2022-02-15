@@ -234,4 +234,59 @@ app.post("/api/message/postMessage", TokenCheck, async(req, res) =>
     }
 })
 
+app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
+{
+    const userAccount = await User.findById(req.user);
+    if(!userAccount) return res.status(400).send({error:true, message:"Your account does not exist?"})
+
+    const friends = JSON.parse(userAccount.friendlist);
+    
+    const selfMessages = await Msg.find({ownerId: req.user});
+
+    if(friends.length == 0 && selfMessages.length == 0) return res.send({error:false, data:[]})
+
+    //10 messages
+    let messages = []; 
+    let dateMessage = []; 
+
+    if(selfMessages.length > 10)
+    {
+        for(let i = 0; i < selfMessages.length; i++)
+        {
+            let added = false; 
+            var messageDate = new Date(selfMessages[i].date);
+            messageDate = messageDate.getSeconds(); 
+            for(y = 0; y < messages.length;y++)
+            {
+                if(messageDate > dateMessage[y])
+                {
+                    messages.splice(y, 0, selfMessages[i]);
+                    dateMessage.splice(y, 0, messageDate);
+                    added = true; 
+                    break; 
+                }
+            }
+            if(messages.length > 10) 
+            {
+                messages.splice(10, 1)
+                dateMessage.splice(10, 1)
+            }
+            else if(messages.length < 10) 
+            {
+                
+            }
+        }
+    }
+    else
+    {
+        messages = selfMessages;
+        for(let i = 0; i < messages.length; i++)
+        {
+            var messageDate = new Date(messages[i].date);
+            messageDate = messageDate.getSeconds(); 
+            dateMessage.push(messageDate);
+        }
+    }
+})
+
 app.listen(3000, () => console.log("Server up "))
