@@ -31,6 +31,8 @@ app.use(cookieParser())
 //using express's json middleware to parse req.body into a JSON object
 app.use(express.json())
 
+const max = 10; 
+
 //Connects us to the mongoose database using DOT ENV mongoose link 
 mongoose.connect(process.env.MONGO_CONNECT, {useNewUrlParser:true, useUnifiedTopology:true}, () =>
 {
@@ -236,12 +238,29 @@ app.post("/api/message/postMessage", TokenCheck, async(req, res) =>
 
 app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
 {
+    console.log("hello")
     const userAccount = await User.findById(req.user);
     if(!userAccount) return res.status(400).send({error:true, message:"Your account does not exist?"})
 
     const friends = JSON.parse(userAccount.friendlist);
     
-    const selfMessages = await Msg.find({ownerId: req.user});
+    //const selfMessages = await Msg.find({ownerId: req.user});
+
+    const selfMessages = [
+        {msg:"BALLS", date:200},
+        {msg:"MEOW", date:232},
+        {msg:"BARK", date:120},
+        {msg:"CAR", date:320},
+        {msg:"DOG", date:2310},
+        {msg:"RAT", date:21},
+        {msg:"SAT", date:2230},
+        {msg:"WQGGQW", date:210},
+        {msg:"PMG", date:260},
+        {msg:"OMG", date:210},
+        {msg:"WOW!", date:211},
+        {msg:"BOOM", date:223},
+        {msg:"ZOOM", date:212},
+    ]
 
     if(friends.length == 0 && selfMessages.length == 0) return res.send({error:false, data:[]})
 
@@ -249,14 +268,25 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
     let messages = []; 
     let dateMessage = []; 
 
-    if(selfMessages.length > 10)
+    messages.push(selfMessages[0])
+    dateMessage.push(selfMessages[0].date)
+
+    for(let i = 0; i < selfMessages.length; i++)
     {
-        for(let i = 0; i < selfMessages.length; i++)
+        // var messageDate = new Date(selfMessages[i].date);
+        // messageDate = messageDate.getSeconds(); 
+
+        messageDate = selfMessages[i].date;
+
+        console.log(messages.length < max)
+        if(dateMessage[dateMessage.length-1] >= messageDate && messages.length < max)
         {
-            let added = false; 
-            var messageDate = new Date(selfMessages[i].date);
-            messageDate = messageDate.getSeconds(); 
-            for(y = 0; y < messages.length;y++)
+            messages.push(selfMessages[i]); 
+            dateMessage.push(messageDate);
+        }
+        else if(dateMessage[dateMessage.length-1] < messageDate)
+        {
+            for(let y = 0; y < messages.length;y++)
             {
                 if(messageDate > dateMessage[y])
                 {
@@ -266,27 +296,27 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
                     break; 
                 }
             }
-            if(messages.length > 10) 
+            if(messages.length > max)
             {
-                messages.splice(10, 1)
-                dateMessage.splice(10, 1)
-            }
-            else if(messages.length < 10) 
-            {
-                
+                messages.splice(max,1)
+                dateMessage.splice(max,1)
             }
         }
     }
-    else
-    {
-        messages = selfMessages;
-        for(let i = 0; i < messages.length; i++)
-        {
-            var messageDate = new Date(messages[i].date);
-            messageDate = messageDate.getSeconds(); 
-            dateMessage.push(messageDate);
-        }
-    }
+    console.log(messages)
+    console.log(dateMessage)
+    res.send({message:"good"})
+    // else
+    // {
+    //     messages = selfMessages;
+    //     for(let i = 0; i < messages.length; i++)
+    //     {
+    //         // var messageDate = new Date(messages[i].date);
+    //         // messageDate = messageDate.getSeconds(); 
+    //         messageDate = messages[i].date
+    //         dateMessage.push(messageDate);
+    //     }
+    // }
 })
 
 app.listen(3000, () => console.log("Server up "))

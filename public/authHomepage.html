@@ -162,6 +162,16 @@
                     document.getElementById("profileUsername").innerHTML = data.username;
                     document.getElementById("profileImage").setAttribute("src",data.imageLink)
                 })
+
+                fetch("http://localhost:3000/api/messages/getMessages", {
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                method:"GET",
+                }).then(res => res.json()).then(data =>
+                {
+                    console.log(data.message)    
+                })
             }
             
             init();
