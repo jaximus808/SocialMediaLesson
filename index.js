@@ -244,23 +244,25 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
 
     const friends = JSON.parse(userAccount.friendlist);
     
-    //const selfMessages = await Msg.find({ownerId: req.user});
+    const selfMessages = await Msg.find({ownerId: req.user});
 
-    const selfMessages = [
-        {msg:"BALLS", date:200},
-        {msg:"MEOW", date:232},
-        {msg:"BARK", date:120},
-        {msg:"CAR", date:320},
-        {msg:"DOG", date:2310},
-        {msg:"RAT", date:21},
-        {msg:"SAT", date:2230},
-        {msg:"WQGGQW", date:210},
-        {msg:"PMG", date:260},
-        {msg:"OMG", date:210},
-        {msg:"WOW!", date:211},
-        {msg:"BOOM", date:223},
-        {msg:"ZOOM", date:212},
-    ]
+    // const selfMessages = [
+    //     {msg:"BALLS", date:200},
+    //     {msg:"MEOW", date:232},
+    //     {msg:"BARK", date:120},
+    //     {msg:"CAR", date:320},
+    //     {msg:"DOG", date:2310},
+    //     {msg:"RAT", date:21},
+    //     {msg:"SAT", date:2230},
+    //     {msg:"WQGGQW", date:210},
+    //     {msg:"PMG", date:260},
+    //     {msg:"OMG", date:210},
+    //     {msg:"WOW!", date:211},
+    //     {msg:"BOOM", date:223},
+    //     {msg:"ZOOM", date:212},
+    // ]
+
+    console.log(selfMessages)
 
     if(friends.length == 0 && selfMessages.length == 0) return res.send({error:false, data:[]})
 
@@ -269,14 +271,14 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
     let dateMessage = []; 
 
     messages.push(selfMessages[0])
-    dateMessage.push(selfMessages[0].date)
+    
+    var firstDate = selfMessages[0].date.getTime();
 
-    for(let i = 0; i < selfMessages.length; i++)
+    dateMessage.push(firstDate)
+
+    for(let i = 1; i < selfMessages.length; i++)
     {
-        // var messageDate = new Date(selfMessages[i].date);
-        // messageDate = messageDate.getSeconds(); 
-
-        messageDate = selfMessages[i].date;
+        var messageDate = selfMessages[i].date.getTime()
 
         console.log(messages.length < max)
         if(dateMessage[dateMessage.length-1] >= messageDate && messages.length < max)
@@ -305,18 +307,8 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
     }
     console.log(messages)
     console.log(dateMessage)
-    res.send({message:"good"})
-    // else
-    // {
-    //     messages = selfMessages;
-    //     for(let i = 0; i < messages.length; i++)
-    //     {
-    //         // var messageDate = new Date(messages[i].date);
-    //         // messageDate = messageDate.getSeconds(); 
-    //         messageDate = messages[i].date
-    //         dateMessage.push(messageDate);
-    //     }
-    // }
+
+    res.send({error:false, message:messages})
 })
 
 app.listen(3000, () => console.log("Server up "))

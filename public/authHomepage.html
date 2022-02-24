@@ -43,6 +43,7 @@
             {
                 margin:0; 
                 padding:0; 
+                overflow-x: hidden;
             }
             #newMessage
             {
@@ -72,7 +73,7 @@
                 font-size: 20px;
             }
 
-            .messageTimeline
+            #messageTimeline
             {
                 position:relative; 
                 top:10px; 
@@ -95,17 +96,8 @@
             <button onclick="SendMessage()" id="postMessage">Squirk</button>
         </div>
         
-        <div class="messageTimeline">
-            <div class="msgContainer">
-                <img class="pfpMessage" src="https://archive.org/download/twitter-default-pfp/e.png">
-                <div class="MessageOwner">NAMe</div>
-                <div class="messageContent">
-                    I very much love valentines!
-                </div>
-                <button class="upvoteButton">I like!</button>
-                
-                <button class="downvoteButton">I no like!</button>
-            </div>
+        <div id="messageTimeline">
+            
         </div>
         <script>
             const SendMessage = () =>
@@ -170,11 +162,75 @@
                 method:"GET",
                 }).then(res => res.json()).then(data =>
                 {
-                    console.log(data.message)    
+                    if(data.error)
+                    {
+                        console.log("ERROR GETTING MESSAGES!!!")
+                        return;
+                    }
+                    for(let i = 0; i < data.message.length; i++)
+                    {
+                        DisplayMessage("test name", data.message[i].message, data.message[i]._id)
+                    }
+
                 })
+            }
+
+            const DisplayMessage = (name, content, id) =>
+            {
+                
+                var msgContainer = document.createElement("div");
+                msgContainer.setAttribute("class", "msgContainer");
+                msgContainer.setAttribute("id",`msg${id}`)
+                var pfpImage = document.createElement("img")
+                pfpImage.setAttribute("class", "pfpMessage")
+                //make this the actual user profile
+                pfpImage.setAttribute("src", "https://archive.org/download/twitter-default-pfp/e.png")
+
+                msgContainer.appendChild(pfpImage);
+                
+                var messageName = document.createElement("div");
+                messageName.setAttribute("class", "MessageOwner");
+                messageName.innerHTML = name;
+
+                msgContainer.appendChild(messageName)
+
+                var messageContent = document.createElement("div")
+                messageContent.setAttribute("class","messageContent" )
+                messageContent.innerHTML = content
+
+                msgContainer.appendChild(messageContent)
+
+                var upvote = document.createElement("button")
+                upvote.setAttribute("class","upvoteButton")
+                upvote.innerHTML = "I like this!"
+
+                msgContainer.appendChild(upvote)
+
+                var downvote = document.createElement("button")
+                downvote.setAttribute("class","downvoteButton")
+                downvote.innerHTML = "I dislike this!"
+
+                msgContainer.appendChild(downvote)
+
+                document.getElementById("messageTimeline").appendChild(msgContainer)
+
+                document.getElementById("messageTimeline").appendChild(
+                    document.createElement("p")
+                )
             }
             
             init();
         </script>
     </body>
 </html> 
+<!-- 
+<div class="msgContainer">
+    <img class="pfpMessage" src="https://archive.org/download/twitter-default-pfp/e.png">
+    <div class="MessageOwner">NAMe</div>
+    <div class="messageContent">
+        I very much love valentines!
+    </div>
+    <button class="upvoteButton">I like!</button>
+    
+    <button class="downvoteButton">I no like!</button>
+</div> -->
