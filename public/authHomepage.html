@@ -169,13 +169,13 @@
                     }
                     for(let i = 0; i < data.message.length; i++)
                     {
-                        DisplayMessage("test name", data.message[i].message, data.message[i]._id)
+                        DisplayMessage(data.userInfos[i].username, data.message[i].message, data.message[i]._id,data.userInfos[i].pfp)
                     }
 
                 })
             }
 
-            const DisplayMessage = (name, content, id) =>
+            const DisplayMessage = (name, content, id, pfpLink) =>
             {
                 
                 var msgContainer = document.createElement("div");
@@ -184,7 +184,7 @@
                 var pfpImage = document.createElement("img")
                 pfpImage.setAttribute("class", "pfpMessage")
                 //make this the actual user profile
-                pfpImage.setAttribute("src", "https://archive.org/download/twitter-default-pfp/e.png")
+                pfpImage.setAttribute("src", pfpLink)
 
                 msgContainer.appendChild(pfpImage);
                 

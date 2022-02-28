@@ -238,12 +238,14 @@ app.post("/api/message/postMessage", TokenCheck, async(req, res) =>
 
 app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
 {
-    console.log("hello")
+    //finds the userAccount by the token's id and returns the account's information
     const userAccount = await User.findById(req.user);
+    //if cannot find the account send an error as userAccount is undefined 
     if(!userAccount) return res.status(400).send({error:true, message:"Your account does not exist?"})
 
+    //makes the friends list variable and creates an array by parsing the string array into an actual array
     const friends = JSON.parse(userAccount.friendlist);
-    
+    //looks through the messages and finds which belongs to the userAccount
     const selfMessages = await Msg.find({ownerId: req.user});
 
     // const selfMessages = [
@@ -262,29 +264,42 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
     //     {msg:"ZOOM", date:212},
     // ]
 
-    console.log(selfMessages)
-
+    //if you have no friends and no messages then display nothing and saves processing power since nothing would return 
     if(friends.length == 0 && selfMessages.length == 0) return res.send({error:false, data:[]})
 
     //10 messages
+    //if friends then creates three empty arrays
+    //stores the literal messages to display
     let messages = []; 
+    //stores when the messages were sent for the algorithm
     let dateMessage = []; 
+    //who sent the messages 
+    let userInfos = []; 
 
+    //adds the first element to the array so it is not empty, we do this because if the array is empty the for loop has nothing to loop through.
     messages.push(selfMessages[0])
     
     var firstDate = selfMessages[0].date.getTime();
 
     dateMessage.push(firstDate)
+    
+    userInfos.push({
+        username: userAccount.username,
+        pfp: userAccount.profilePicture
+    })
 
     for(let i = 1; i < selfMessages.length; i++)
     {
         var messageDate = selfMessages[i].date.getTime()
 
-        console.log(messages.length < max)
         if(dateMessage[dateMessage.length-1] >= messageDate && messages.length < max)
         {
             messages.push(selfMessages[i]); 
             dateMessage.push(messageDate);
+            userInfos.push({
+                username: userAccount.username,
+                pfp: userAccount.profilePicture
+            })
         }
         else if(dateMessage[dateMessage.length-1] < messageDate)
         {
@@ -294,6 +309,10 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
                 {
                     messages.splice(y, 0, selfMessages[i]);
                     dateMessage.splice(y, 0, messageDate);
+                    userInfos.splice(y, 0, {
+                        username: userAccount.username,
+                        pfp: userAccount.profilePicture
+                    })
                     added = true; 
                     break; 
                 }
@@ -302,13 +321,14 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
             {
                 messages.splice(max,1)
                 dateMessage.splice(max,1)
+                userInfos.splice(max, 1)
             }
         }
     }
     console.log(messages)
     console.log(dateMessage)
 
-    res.send({error:false, message:messages})
+    res.send({error:false, message:messages, userInfos: userInfos})
 })
 
 app.listen(3000, () => console.log("Server up "))
