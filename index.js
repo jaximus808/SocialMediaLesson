@@ -288,12 +288,17 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
         pfp: userAccount.profilePicture
     })
 
+    //loops through the selfMessages array except for the first one
     for(let i = 1; i < selfMessages.length; i++)
     {
+        //stores the ms from the starting date (Jan 1 1970) into the variable messageDate.
         var messageDate = selfMessages[i].date.getTime()
 
+        //a condition where if the message datez is the least out of the current dates and the length is 
+        //less than the max, add the message to the end. 
         if(dateMessage[dateMessage.length-1] >= messageDate && messages.length < max)
         {
+            //pushes the information of the message, date, and user info into the messages array
             messages.push(selfMessages[i]); 
             dateMessage.push(messageDate);
             userInfos.push({
@@ -301,24 +306,32 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
                 pfp: userAccount.profilePicture
             })
         }
+        //checks if the date being check is more recent than the last date in the array. 
+        //if true: run our sorting algorithm
         else if(dateMessage[dateMessage.length-1] < messageDate)
         {
+            //It loops through all the elements in the messages array
             for(let y = 0; y < messages.length;y++)
             {
+                //checks if the message is newer than the message at the y position in the messages array
                 if(messageDate > dateMessage[y])
                 {
+                    //uses the message data and puts the new message into the messages array at the y position
+                    //splice: inserts an element and moves everthing after it to the right
                     messages.splice(y, 0, selfMessages[i]);
                     dateMessage.splice(y, 0, messageDate);
                     userInfos.splice(y, 0, {
                         username: userAccount.username,
                         pfp: userAccount.profilePicture
-                    })
-                    added = true; 
+                    }) 
+                    //makes sure the messages is only added once to the array. It does this by stopping the for loop
                     break; 
                 }
             }
+            //if the messages length is greater than the max, then remove the last element in the array. 
             if(messages.length > max)
             {
+                //splice(a, b) a = position, b = how much to delete from that position
                 messages.splice(max,1)
                 dateMessage.splice(max,1)
                 userInfos.splice(max, 1)
@@ -328,6 +341,7 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
     console.log(messages)
     console.log(dateMessage)
 
+    //sends to the client the messages to be show it on the webpage
     res.send({error:false, message:messages, userInfos: userInfos})
 })
 
