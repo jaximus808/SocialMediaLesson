@@ -73,6 +73,18 @@
                 font-size: 20px;
             }
 
+            .likes
+            {
+                position: inherit;
+                right:0%; 
+            }
+
+            .dislikes
+            {
+                position: inherit;
+                right:0%;
+                top:5%;  
+            }
             #messageTimeline
             {
                 position:relative; 
@@ -167,15 +179,99 @@
                         console.log("ERROR GETTING MESSAGES!!!")
                         return;
                     }
+                    console.log(data)
                     for(let i = 0; i < data.message.length; i++)
                     {
-                        DisplayMessage(data.userInfos[i].username, data.message[i].message, data.message[i]._id,data.userInfos[i].pfp)
+                        let state = 0; 
+                        if(JSON.parse(data.message[i].likedIds).includes(data.userId)) state = 1; 
+                        else if(JSON.parse(data.message[i].dislikedIds).includes(data.userId)) state = 2; 
+                        DisplayMessage(
+                        data.userInfos[i].username, 
+                        data.message[i].message,
+                        data.message[i]._id,
+                        data.userInfos[i].pfp,
+                        data.message[i].upvotes,
+                        data.message[i].downvotes,
+                        state
+                        )
                     }
 
                 })
             }
 
-            const DisplayMessage = (name, content, id, pfpLink) =>
+            const LikeMessage = (id) =>
+            {
+                fetch("http://localhost:3000/api/message/likeMessage", {
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                method:"POST",
+                body:JSON.stringify(
+                    {
+                        id:id
+                    }
+                ),
+                }).then(res => res.json()).then(data =>
+                {
+                    //if there is an error in the data return out of the function and goes back home
+                    if(data.error)
+                    {
+                        window.location.href = "/"; 
+                        return; 
+                    } 
+                    if(data.repeat) return; 
+                    document.getElementById(`upvoteButton${id}`).disabled = true;
+                    document.getElementById(`upvoteButton${id}`).innerHTML = "You liked this";
+
+                    if(document.getElementById(`downvoteButton${id}`).disabled )
+                    {
+                        dislikesValue = parseInt(document.getElementById(`dislikes${id}`).innerHTML.slice(10,document.getElementById(`dislikes${id}`).innerHTML.length));
+                        document.getElementById(`downvoteButton${id}`).disabled = false;
+                        document.getElementById(`downvoteButton${id}`).innerHTML = "I dislike this!"
+                        document.getElementById(`dislikes${id}`).innerHTML = `dislikes: ${dislikesValue-1}`;
+                    }
+                    document.getElementById(`likes${id}`).innerHTML = `likes: ${data.upvotes}`
+                })
+
+            } 
+            const DislikeMessage = (id) =>
+            {
+                fetch("http://localhost:3000/api/message/dislikeMessage", {
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                method:"POST",
+                body:JSON.stringify(
+                    {
+                        id:id
+                    }
+                ),
+                }).then(res => res.json()).then(data =>
+                {
+                    //if there is an error in the data return out of the function and goes back home
+                    if(data.error)
+                    {
+                        window.location.href = "/"; 
+                        return; 
+                    } 
+                    if(data.repeat) return;
+                    document.getElementById(`downvoteButton${id}`).disabled = true;
+                    document.getElementById(`downvoteButton${id}`).innerHTML = "You disliked this";
+                    if(document.getElementById(`upvoteButton${id}`).disabled)
+                    {
+                        likesValue = parseInt(document.getElementById(`likes${id}`).innerHTML.slice(7,document.getElementById(`likes${id}`).innerHTML.length));
+                        console.log(document.getElementById(`likes${id}`).innerHTML.slice(7,document.getElementById(`likes${id}`).innerHTML.length))
+                        document.getElementById(`upvoteButton${id}`).disabled = false;
+                        document.getElementById(`upvoteButton${id}`).innerHTML = "I like this!"
+                        document.getElementById(`likes${id}`).innerHTML = `likes: ${likesValue-1}`;
+                    }
+                    dislikesValue = parseInt(document.getElementById(`dislikes${id}`).innerHTML.slice(0,9));
+                    document.getElementById(`dislikes${id}`).innerHTML = `dislikes: ${data.upvotes}`
+                })
+            } 
+
+            //state 0: no interaction, 1: like, 2: dislike
+            const DisplayMessage = (name, content, id, pfpLink, likes, dislikes, state) =>
             {
                 
                 var msgContainer = document.createElement("div");
@@ -202,15 +298,44 @@
 
                 var upvote = document.createElement("button")
                 upvote.setAttribute("class","upvoteButton")
-                upvote.innerHTML = "I like this!"
+                upvote.setAttribute("id", `upvoteButton${id}`)
+                upvote.innerHTML = (state == 1) ? "You liked this" : "I like this!";
+                if(state == 1) upvote.disabled = true
+                
+                upvote.onclick = ()=>
+                {
+                    LikeMessage(id)
+                }
 
                 msgContainer.appendChild(upvote)
 
+                
                 var downvote = document.createElement("button")
                 downvote.setAttribute("class","downvoteButton")
-                downvote.innerHTML = "I dislike this!"
+                downvote.setAttribute("id", `downvoteButton${id}`)
+                downvote.innerHTML = (state == 2) ? "You disliked this" : "I dislike this!";
+                if(state == 2) downvote.disabled = true
+                downvote.onclick = ()=>
+                {
+                    DislikeMessage(id)
+                }
+
+
+                var likeCount = document.createElement("div");
+                likeCount.setAttribute("class","likes")
+                likeCount.innerHTML = "likes: "+likes; 
+                likeCount.setAttribute("id", `likes${id}`);
+
+                msgContainer.appendChild(likeCount);
+
+                var dislikeCount = document.createElement("div");
+                dislikeCount.setAttribute("class","dislikes")
+                dislikeCount.innerHTML = "dislikes: " + dislikes; 
+                dislikeCount.setAttribute("id", `dislikes${id}`);
 
                 msgContainer.appendChild(downvote)
+
+                msgContainer.appendChild(dislikeCount);
 
                 document.getElementById("messageTimeline").appendChild(msgContainer)
 

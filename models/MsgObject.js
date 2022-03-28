@@ -26,6 +26,16 @@ const Msg = new Schema({
         min: 0,
         default: 0
     },
+    likedIds:
+    {
+        type:String,
+        default:"[]",
+    },
+    dislikedIds:
+    {
+        type:String,
+        default:"[]",
+    },
     date: {
         type:Date,
         default:Date.now

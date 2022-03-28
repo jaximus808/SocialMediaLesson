@@ -1,4 +1,5 @@
-//importing express module and saving it in express variable
+
+//importing express and saving it in express variable
 const express = require("express")
 //create an express object and store it into the variable app
 //can use app to create API routes
@@ -342,7 +343,86 @@ app.get("/api/messages/getMessages", TokenCheck, async (req, res) =>
     console.log(dateMessage)
 
     //sends to the client the messages to be show it on the webpage
-    res.send({error:false, message:messages, userInfos: userInfos})
+    res.send({error:false, message:messages, userInfos: userInfos, userId:req.user._id})
+})
+
+app.post("/api/message/likeMessage", TokenCheck, async(req, res) =>
+{
+    const userId = req.user._id; 
+
+    const message = await Msg.findById(req.body.id);
+    if(!message) return res.status(400).send({error:true, message:"Message does not exist"})
+
+    const likedIds = JSON.parse(message.likedIds)
+    const dislikedIds = JSON.parse(message.dislikedIds)
+
+    if(likedIds.includes(userId)) return res.status(400).send({error:false, repeat: true, message:"alreadyLiked"})
+    message.upvotes = message.upvotes +1; 
+    
+
+    const deleteRemove = dislikedIds.indexOf(userId)
+
+    if(deleteRemove != -1)
+    {
+        dislikedIds.splice(deleteRemove, 1); 
+        message.downvotes = message.downvotes - 1; 
+    } 
+
+    likedIds.push(userId)
+
+    message.likedIds = JSON.stringify(likedIds)
+    message.dislikedIds = JSON.stringify(dislikedIds)
+    try
+    {
+        const updatedMessage = await message.save();
+
+        res.send({error:false, repeat:false, upvotes: updatedMessage.upvotes}) 
+    } 
+    catch
+    {
+
+        res.send({error:true, repeat:false })
+    }
+})
+
+app.post("/api/message/dislikeMessage", TokenCheck, async(req, res) =>
+{
+    const userId = req.user._id; 
+
+    const message = await Msg.findById(req.body.id);
+    if(!message) return res.status(400).send({error:true, message:"Message does not exist"})
+
+    const likedIds = JSON.parse(message.likedIds)
+    const dislikedIds = JSON.parse(message.dislikedIds)
+
+    if(dislikedIds.includes(userId)) return res.status(400).send({error:false, repeat: true, message:"alreadydisLiked"})
+    message.downvotes = message.downvotes +1; 
+    
+    const likedRemove = likedIds.indexOf(userId)
+
+    if(likedRemove != -1)
+    {
+        likedIds.splice(likedRemove, 1); 
+        message.upvotes = message.upvotes - 1; 
+    } 
+    dislikedIds.push(userId)
+
+    message.dislikedIds = JSON.stringify(dislikedIds)
+    message.likedIds = JSON.stringify(likedIds); 
+    try
+    {
+        const updatedMessage = await message.save();
+
+        res.send({error:false, repeat:false, upvotes: updatedMessage.downvotes}) 
+    } 
+    catch
+    {
+
+        res.send({error:true, repeat:false })
+    }
 })
 
 app.listen(3000, () => console.log("Server up "))
+
+
+
